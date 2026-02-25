@@ -7,7 +7,7 @@
 Emoji Vibe is a fast, physics-based "Suika-style" (Watermelon game) merge puzzle built entirely as a **Vibe Coding** experiment! It was scoped, designed, and interactively built within a conversational AI pairing session. 
 
 Check out the deployed game here:  
-👉 **[Play Emoji Vibe Now!](https://hanweishao.github.io/emoji-vibe/)**
+👉 **[Play Emoji Vibe Now!](https://hshaoda.github.io/emoji-vibe/)**
 
 ---
 
@@ -40,7 +40,7 @@ If you want to spin the project up locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/HanweiShao/emoji-vibe.git
+git clone https://github.com/hshaoda/emoji-vibe.git
 cd emoji-vibe
 
 # Install dependencies
