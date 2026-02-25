@@ -37,5 +37,10 @@ The application was built following a strict phase-based approach to ensure stab
 - Implemented state-reactive re-rendering where switching themes smoothly transitions Tailwind background colors via `transition-colors`.
 - Automatically clears the board on a theme shift to prevent engine conflict between diverse data dictionaries.
 
+### Phase 6: Post-Launch Juice & Polish
+- Engineered max-tier object lifecycle logic to purposefully destroy (`Composite.remove`) max-level emojis upon merging.
+- Incentivized max-tier clears by awarding a 2x bonus points multiplier.
+- Created an array-driven particle system explicitly managed in React `useRef` and drawn atop the raw physics canvas in `afterRender`. On a max-tier merge, 30 physics-lite colorful confetti particles are spawned with simulated gravity and fadeout.
+
 ## Final Adjustments
 - Rebalanced the size tiers drastically downwards (e.g. maxing out at 95px instead of 145px) so that the largest final tier emojis are physically capable of sitting side-by-side within the 400px width constraint, eliminating late-game softlocks.

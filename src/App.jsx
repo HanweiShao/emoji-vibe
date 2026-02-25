@@ -13,8 +13,7 @@ const THEMES = {
       { emoji: '😤', size: 50, points: 32 },
       { emoji: '😡', size: 60, points: 64 },
       { emoji: '🤬', size: 70, points: 128 },
-      { emoji: '💥', size: 80, points: 256 },
-      { emoji: '🌋', size: 95, points: 512 }
+      { emoji: '🌋', size: 80, points: 256 }
     ]
   },
   aussie: {
@@ -27,8 +26,7 @@ const THEMES = {
       { emoji: '🦘', size: 40, points: 16 },
       { emoji: '🦈', size: 50, points: 32 },
       { emoji: '🐊', size: 60, points: 64 },
-      { emoji: '🐋', size: 70, points: 128 },
-      { emoji: '🌏', size: 95, points: 256 }
+      { emoji: '🌏', size: 75, points: 256 }
     ]
   },
   property: {
@@ -40,8 +38,7 @@ const THEMES = {
       { emoji: '🏡', size: 30, points: 8 },
       { emoji: '🏠', size: 40, points: 16 },
       { emoji: '🏘️', size: 50, points: 32 },
-      { emoji: '🏢', size: 65, points: 64 },
-      { emoji: '🏙️', size: 85, points: 128 }
+      { emoji: '🏢', size: 65, points: 64 }
     ]
   }
 };
@@ -57,6 +54,7 @@ export default function App() {
 
   const sceneRef = useRef(null);
   const engineRef = useRef(null);
+  const particlesRef = useRef([]); // To hold explosion particles
 
   const handleRestart = () => {
     setScore(0);
@@ -156,31 +154,57 @@ export default function App() {
 
           const currentTier = currentTheme.chain.findIndex(item => item.emoji === bodyA.label);
 
-          if (currentTier >= 0 && currentTier < currentTheme.chain.length - 1) {
-            const nextTierData = currentTheme.chain[currentTier + 1];
+          if (currentTier >= 0) {
+            if (currentTier < currentTheme.chain.length - 1) {
+              const nextTierData = currentTheme.chain[currentTier + 1];
 
-            // Score and Device vibration
-            setScore(s => s + nextTierData.points);
-            if (typeof window.navigator.vibrate === 'function') {
-              try { window.navigator.vibrate(50); } catch (e) { /* ignore */ }
-            }
-
-            const newX = (bodyA.position.x + bodyB.position.x) / 2;
-            const newY = (bodyA.position.y + bodyB.position.y) / 2;
-
-            const newBody = Bodies.circle(newX, newY, nextTierData.size, {
-              restitution: 0.5,
-              friction: 0.1,
-              label: nextTierData.emoji,
-              render: {
-                fillStyle: 'transparent',
-                strokeStyle: 'transparent',
-                lineWidth: 0
+              // Score and Device vibration
+              setScore(s => s + nextTierData.points);
+              if (typeof window.navigator.vibrate === 'function') {
+                try { window.navigator.vibrate(50); } catch (e) { /* ignore */ }
               }
-            });
 
-            Matter.Composite.remove(engine.world, [bodyA, bodyB]);
-            Matter.Composite.add(engine.world, newBody);
+              const newX = (bodyA.position.x + bodyB.position.x) / 2;
+              const newY = (bodyA.position.y + bodyB.position.y) / 2;
+
+              const newBody = Bodies.circle(newX, newY, nextTierData.size, {
+                restitution: 0.5,
+                friction: 0.1,
+                label: nextTierData.emoji,
+                render: {
+                  fillStyle: 'transparent',
+                  strokeStyle: 'transparent',
+                  lineWidth: 0
+                }
+              });
+
+              Matter.Composite.remove(engine.world, [bodyA, bodyB]);
+              Matter.Composite.add(engine.world, newBody);
+            } else {
+              // Final tier merge! Remove them and give a score bonus
+              const currentTierData = currentTheme.chain[currentTier];
+              setScore(s => s + currentTierData.points * 2);
+              if (typeof window.navigator.vibrate === 'function') {
+                try { window.navigator.vibrate(100); } catch (e) { /* ignore */ }
+              }
+
+              const explodeX = (bodyA.position.x + bodyB.position.x) / 2;
+              const explodeY = (bodyA.position.y + bodyB.position.y) / 2;
+
+              // Generate 20 confetti/explosion particles
+              for (let p = 0; p < 30; p++) {
+                particlesRef.current.push({
+                  x: explodeX,
+                  y: explodeY,
+                  vx: (Math.random() - 0.5) * 15,
+                  vy: (Math.random() - 0.5) * 15,
+                  life: 1.0, // fade out
+                  color: ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'][Math.floor(Math.random() * 5)]
+                });
+              }
+
+              Matter.Composite.remove(engine.world, [bodyA, bodyB]);
+            }
           }
         }
       }
@@ -238,6 +262,29 @@ export default function App() {
 
         context.restore();
       }
+
+      // Draw and update Explosion Particles
+      for (let i = particlesRef.current.length - 1; i >= 0; i--) {
+        const p = particlesRef.current[i];
+
+        context.beginPath();
+        context.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+        context.fillStyle = p.color;
+        context.globalAlpha = p.life;
+        context.fill();
+        context.globalAlpha = 1.0;
+
+        // update particle
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2; // slight gravity
+        p.life -= 0.02;
+
+        if (p.life <= 0) {
+          particlesRef.current.splice(i, 1);
+        }
+      }
+
       context.restore();
     });
 
